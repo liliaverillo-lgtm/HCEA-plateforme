@@ -76,32 +76,13 @@ st.caption(
 )
 
 HIER = datetime.now().date() - timedelta(days=1)
+start_date = HIER - timedelta(days=6)   # 7 jours glissants
+end_date = HIER
 
 with st.sidebar:
     st.header("📅 Période")
-    st.caption("ℹ️ Les données du jour en cours sont parfois disponibles avec quelques heures de délai.")
-    start_date = st.date_input(
-        "Début",
-        value=HIER - timedelta(days=2),
-        max_value=datetime.now().date(),
-    )
-    end_date = st.date_input(
-        "Fin",
-        value=HIER,
-        max_value=datetime.now().date(),
-    )
-    nb_jours = (end_date - start_date).days + 1
-    st.info(f"📆 {nb_jours} jour(s)")
-    if nb_jours > 14:
-        st.warning("⚠️ Au-delà de 14 jours le chargement peut être lent.")
+    st.info(f"📆 {start_date} → {end_date} (7 derniers jours)")
     lancer = st.button("🔄 Charger", type="primary", use_container_width=True)
-
-    st.markdown("---")
-    st.markdown(
-        "**Source des puissances nominales**\n\n"
-        "IAEA PRIS — [pris.iaea.org](https://pris.iaea.org/pris/CountryStatistics/"
-        "CountryDetails.aspx?current=FR)"
-    )
 
 if not lancer:
     st.info("👈 Choisissez une période et cliquez sur **Charger**.")
