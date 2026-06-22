@@ -39,8 +39,19 @@ SEUIL_ON_PCT      = 5
 N_COLS_SPARKLINES = 4
 MAX_WORKERS_API   = 4
 
-# Le fichier parquet est placé dans le même dossier que ce script
-FICHIER_PARQUET = Path(__file__).parent / "nucleaire_FR_historique.parquet"
+# Résolution du chemin vers le parquet — essaie plusieurs emplacements
+# pour fonctionner aussi bien en local que sur Streamlit Cloud
+def _trouver_parquet() -> Path:
+    candidats = [
+        Path(__file__).parent / "nucleaire_FR_historique.parquet",  # relatif au script
+        Path.cwd() / "nucleaire_FR_historique.parquet",              # répertoire de travail
+    ]
+    for p in candidats:
+        if p.exists():
+            return p
+    return candidats[0]  # chemin par défaut si aucun trouvé
+
+FICHIER_PARQUET = _trouver_parquet()
 
 PUISSANCE_NOMINALE_MW = {
     "BUGEY 2": 910,      "BUGEY 3": 910,      "BUGEY 4": 880,      "BUGEY 5": 880,
@@ -218,7 +229,11 @@ with st.sidebar:
     st.markdown("---")
     df_info = lire_parquet()
     if df_info.empty:
-        st.caption(f"📂 Aucun parquet trouvé.\n\n🔍 Chemin : `{FICHIER_PARQUET}`")
+        st.error("❌ Parquet non trouvé")
+        st.caption(f"**Script :** `{Path(__file__).parent}`")
+        st.caption(f"**CWD :** `{Path.cwd()}`")
+        st.caption(f"**Chemin testé :** `{FICHIER_PARQUET}`")
+        st.caption(f"**Fichier existe :** `{FICHIER_PARQUET.exists()}`")
     else:
         jours_dispo = jours_dans_parquet(df_info)
         st.caption(f"💾 **{len(jours_dispo)} jours** en cache local\n\n"
