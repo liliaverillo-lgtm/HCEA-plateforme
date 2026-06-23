@@ -237,6 +237,7 @@ def sauvegarder_en_db(jour: date, df_wide: pd.DataFrame) -> None:
               .melt(id_vars="ts", var_name="reacteur", value_name="mw")
               .dropna(subset=["mw"])
     )
+    # libsql-experimental exige des tuples, pas des listes
     rows = [tuple(r) for r in df_long[["ts", "reacteur", "mw"]].values.tolist()]
     if not rows:
         return
@@ -255,7 +256,7 @@ def sauvegarder_en_db(jour: date, df_wide: pd.DataFrame) -> None:
             (str(jour), datetime.now().isoformat(), est_complet),
         )
         conn.commit()
-        conn.sync()   # ← persistence permanente dans Turso
+        # Pas de sync() ici — un seul sync global après tous les jours (voir charger_periode)
 
 
 def charger_depuis_db(start: date, end: date) -> pd.DataFrame:
@@ -459,6 +460,10 @@ def charger_periode(start: date, end: date) -> tuple[pd.DataFrame, int, int]:
             with st.expander(f"⚠️ {len(echecs)} jour(s) en erreur"):
                 for j, err in echecs:
                     st.write(f"**{j}** : {err}")
+
+        # Un seul sync après TOUS les jours écrits → x7 plus rapide qu'un sync par jour
+        if len(jours_a_fetcher) > len(echecs):
+            _conn().sync()
 
     df     = charger_depuis_db(start, end)
     nb_api = len(jours_a_fetcher) - len(echecs)
