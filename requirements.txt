@@ -2,3 +2,4 @@ entsoe-py
 pandas
 plotly
 streamlit
+libsql-experimental
