@@ -237,7 +237,7 @@ def sauvegarder_en_db(jour: date, df_wide: pd.DataFrame) -> None:
               .melt(id_vars="ts", var_name="reacteur", value_name="mw")
               .dropna(subset=["mw"])
     )
-    rows = df_long[["ts", "reacteur", "mw"]].values.tolist()
+    rows = [tuple(r) for r in df_long[["ts", "reacteur", "mw"]].values.tolist()]
     if not rows:
         return
 
